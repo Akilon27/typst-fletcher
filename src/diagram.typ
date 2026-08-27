@@ -27,7 +27,7 @@
 	} else {
 		error("Axes #0 cannot both be in the same direction. Try `axes: (ltr, ttb)`.", axes)
 	}
- 
+
 	(
 		flip: (
 			x: axes.at(0) in (rtl, ttb),
@@ -49,8 +49,8 @@
 ///
 /// This is the algorithm used to determine grid layout in diagrams.
 ///
-/// - rects (array): An array of rects of the form 
-///   `(center: (x, y), size: (width, height))`. The coordinates `x` and `y` may 
+/// - rects (array): An array of rects of the form
+///   `(center: (x, y), size: (width, height))`. The coordinates `x` and `y` may
 ///   be floats.
 /// -> array
 #let expand-fractional-rects(rects) = {
@@ -60,7 +60,7 @@
 		for rect in rects {
 			let coord = rect.center.at(axis)
 			let size = rect.size.at(axis)
-   
+
 			if calc.fract(coord) == 0 {
 				rect.center.at(axis) = calc.trunc(coord)
 				new-rects.push(rect)
@@ -94,7 +94,7 @@
 /// - rects (array): Rectangles (dictionaries of the form `(center, size)` which
 ///   are used to determine cell sizes.
 #let compute-cell-sizes(flip, verts, rects) = {
-  
+
 	if flip.xy {
 		// if x/y axes are flipped, transpose rectangles
 		rects = rects.map( ((center, size)) => {
@@ -108,7 +108,7 @@
 	points += verts
 
 	if points.len() == 0 { points.push((0,0)) }
- 
+
 	let min-max-int(a) = (calc.floor(calc.min(..a)), calc.ceil(calc.max(..a)))
 	let (x-min, x-max) = min-max-int(points.map(p => p.at(0)))
 	let (y-min, y-max) = min-max-int(points.map(p => p.at(1)))
@@ -117,7 +117,7 @@
 
 	// Initialise row and column sizes
 	let cell-sizes = bounding-dims.map(n => (0pt,)*n)
- 
+
 	// Expand cells to fit rects
 	for rect in rects {
 		let indices = vector.sub(rect.center, origin)
@@ -159,7 +159,7 @@
 			array.zip(cumsum(sizes), sizes, range(sizes.len()))
 				.map(((end, size, i)) => end - size/2 + spacing*i)
 		})
-  
+
 	let bounding-size = array.zip(centers, grid.cell-sizes)
 		.map(((centers, sizes)) => centers.at(-1) + sizes.at(-1)/2)
 
@@ -182,7 +182,7 @@
 
 	grid += interpret-axes(grid.axes)
 	grid += compute-cell-sizes(grid.flip, verts, rects)
- 
+
 	// enforce minimum cell size
 	grid.cell-sizes = grid.cell-sizes.zip(options.cell-size)
 		.map(((sizes, min-size)) => sizes.map(calc.max.with(min-size)))
@@ -270,7 +270,7 @@
 
 	let edges = ()
 	let nodes = ()
- 
+
 	// convert math matrix into array-of-arrays matrix
 	let matrix = ((none,),)
 	let (x, y) = (0, 0)
@@ -299,7 +299,7 @@
 			matrix.at(-1).at(-1) += child
 		}
 	}
- 
+
 	// turn matrix into an array of nodes
 	for (y, row) in matrix.enumerate() {
 		for (x, item) in row.enumerate() {
@@ -334,7 +334,7 @@
 			if obj.value.class == "node" {
 				let node = obj.value
 				nodes.push(node)
-    
+
 			} else if obj.value.class == "edge" {
 				let edge = obj.value
 				edge.node-index = nodes.len()
@@ -357,6 +357,9 @@
 	)
 
 }
+
+
+
 /// Draw a diagram containing `node()`s and `edge()`s.
 ///
 /// - ..args (array): Content to draw in the diagram, including nodes and edges.
@@ -371,10 +374,11 @@
 ///   	node((1, 0), $B$),
 ///   	{
 ///   		// multiple objects in a block
+///   		// can use scripting, loops, etc
 ///   		node((2, 0), $C$)
 ///   		node((3, 0), $D$)
 ///   	},
-///   	for x in range(4) { node((x, 1) [#x]) },
+///   	for x in range(4) { node((x, 1), [#x]) },
 ///   )
 ///   ```
 ///
@@ -383,7 +387,7 @@
 ///   ```typ
 ///   #diagram($
 ///   	A & B \          // two nodes at (0,0) and (1,0)
-///   	C edge(->) & D \ // an edge from (0,1) to (1,0)
+///   	C edge(->) & D \ // an edge from (0,1) to (1,1)
 ///   	node(sqrt(pi), stroke: #1pt) // a node with options
 ///   $)
 ///   ```
@@ -417,11 +421,11 @@
 ///   example, if `node-stroke` is `1pt` and #the-param[node][stroke] is `red`,
 ///   then the resulting stroke is `1pt + red`.
 ///
-/// - node-fill (paint): Default value of #the-param[node][fill`.
+/// - node-fill (paint): Default value of #the-param[node][fill].
 ///
 /// - edge-stroke (stroke): Default value of #the-param[edge][stroke]. By
-///   default, this is chosen to match the thickness of mathematical arrows
-///   such as $A -> B$ in the current font size.
+///   default, this is chosen to match the thickness of mathematical arrows such
+///   as $A -> B$ in the current font size.
 ///
 ///   The default stroke is folded with the stroke specified for the edge. For
 ///   example, if `edge-stroke` is `1pt` and #the-param[edge][stroke] is `red`,
@@ -535,10 +539,10 @@
 		cetz.canvas(draw-diagram(grid, nodes, edges, debug: options.debug))
 	},
 ) = {
-  
+
 	let spacing = as-pair(spacing).map(as-length)
 	let cell-size = as-pair(cell-size).map(as-length)
- 
+
 	let options = (
 		debug: int(debug),
 		axes: axes,
@@ -564,7 +568,7 @@
 		crossing-fill: crossing-fill,
 		crossing-thickness: crossing-thickness,
 	)
- 
+
 	let (nodes, edges) = interpret-diagram-args(args)
 
 	box(context {
